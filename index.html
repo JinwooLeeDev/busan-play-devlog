@@ -14,25 +14,30 @@
       <nav>
         <a href="https://github.com/JinwooLeeDev/event-platform">GitHub ↗</a
         ><a href="https://github.com/JinwooLeeDev/event-platform/wiki">Wiki ↗</a
-        ><button id="theme" aria-label="테마 전환">◐</button>
+        >
       </nav>
     </header>
     <main>
       <section class="hero">
-        <p class="eyebrow">ENGINEERING NOTES / 2026</p>
-        <h1>Behind the<br />Busan Play<span>.</span></h1>
+        <h1>문제를 만나고,<br />해결을 기록하다.</h1>
         <p>
-          5명의 개발자가 기록하는 기술적 고민과 문제 해결 과정.
+          Busan Play를 만든 5명의 개발자. 오류의 원인부터 기술 선택의 이유까지, 개발 과정의 판단을 모았습니다.
         </p>
         <div id="stats" class="stats"></div>
       </section>
       <section id="troubleshooting" aria-labelledby="records-title">
         <div class="section-heading">
-          <div><h2 id="records-title">팀원별 트러블슈팅</h2>
-          <p>대표 기록을 한눈에 살펴보고, 카드를 눌러 전체 기록을 읽어보세요.</p></div>
-          <span class="tag">5명의 문제 해결 기록</span>
+          <div><h2 id="records-title">트러블슈팅 기록</h2>
+          <p>팀원을 선택하거나, 관심 있는 기록을 바로 읽어보세요.</p></div>
         </div>
-        <div id="members" class="members"></div>
+        <div class="workspace">
+          <aside aria-label="팀원별 기록 선택"><div id="members" class="members"></div></aside>
+          <div class="records-panel">
+            <div class="records-heading"><h3 id="list-title">전체 기록</h3><span id="count" aria-live="polite"></span></div>
+            <p id="member-description" class="member-tasks" hidden></p>
+            <div id="records" class="record-list"></div>
+          </div>
+        </div>
       </section>
     </main>
     <footer>BUSAN PLAY · Engineering Devlog · 2026</footer>

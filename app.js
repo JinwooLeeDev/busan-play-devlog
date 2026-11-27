@@ -6,7 +6,7 @@ const person=id=>members.find(m=>m.id===id)?.name||'담당자 미지정';
 function button(label,fn){const b=el('button',label);b.addEventListener('click',fn);return b;}
 const memberCases=id=>published.filter(c=>c.memberId===id);
 const representative=id=>{const records=memberCases(id);return records.find(c=>c.featured)||records[0];};
-for(const [n,label] of [[members.length,'개발자'],[published.length,'트러블슈팅'],[members.filter(m=>m.retrospective.trim()).length,'회고']]){
+for(const [n,label] of [[members.length,'개발자'],[published.length,'트러블슈팅']]){
   const d=el('div');d.append(el('strong',n),el('span',label));$('stats').append(d);
 }
 for(const [i,m] of members.entries()){
@@ -27,9 +27,6 @@ for(const [i,m] of members.entries()){
   }
   card.append(el('span',records.length?'전체 '+records.length+'개 기록 보기 →':'기록 준비 현황 보기 →','card-action'));
   $('members').append(card);
-  const review=el('div',undefined,'tile');review.append(el('h3',m.name+'의 회고'),el('p',m.retrospective.trim()?'프로젝트 경험 및 개선 방향':'회고록 작성 예정'));
-  if(m.retrospective.trim())review.append(button('회고 읽기',()=>{openArticle(m.name+'의 프로젝트 회고');$('article').append(el('p',m.retrospective));}));
-  $('reviews').append(review);
 }
 function showMember(id){
   const m=members.find(m=>m.id===id),records=memberCases(id),featured=representative(id);

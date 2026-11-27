@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Busan Play | Engineering Devlog</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="data.js"></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="#">BUSAN PLAY <small>/ DEVLOG</small></a>
+      <nav>
+        <a href="https://github.com/JinwooLeeDev/event-platform">GitHub ↗</a
+        ><a href="https://github.com/JinwooLeeDev/event-platform/wiki">Wiki ↗</a
+        ><button id="theme" aria-label="테마 전환">◐</button>
+      </nav>
+    </header>
+    <main>
+      <section class="hero">
+        <p class="eyebrow">ENGINEERING NOTES / 2026</p>
+        <h1>Behind the<br />Busan Play<span>.</span></h1>
+        <p>
+          5명의 개발자가 기록하는 기술적 고민, 문제 해결 과정과 프로젝트 회고.
+        </p>
+        <div id="stats" class="stats"></div>
+      </section>
+      <section id="troubleshooting" aria-labelledby="records-title">
+        <div class="section-heading">
+          <div><h2 id="records-title">팀원별 트러블슈팅</h2>
+          <p>대표 기록을 한눈에 살펴보고, 카드를 눌러 전체 기록을 읽어보세요.</p></div>
+          <span class="tag">5명의 문제 해결 기록</span>
+        </div>
+        <div id="members" class="members"></div>
+      </section>
+      <section id="retrospectives">
+        <p class="eyebrow">RETROSPECTIVES</p>
+        <h2>프로젝트 회고</h2>
+        <div id="reviews" class="cases"></div>
+      </section>
+    </main>
+    <footer>BUSAN PLAY · Engineering Devlog · 2026</footer>
+    <dialog id="detail" aria-labelledby="detail-title">
+      <div class="dialogbar"><button id="close">닫기 ×</button></div>
+      <article id="article"></article>
+    </dialog>
+  </body>
+</html>

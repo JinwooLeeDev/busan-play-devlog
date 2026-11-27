@@ -4,6 +4,39 @@ const el=(tag,content,cls)=>{const n=document.createElement(tag);if(content!==un
 const published=cases.filter(c=>!c.draft);
 const person=id=>members.find(m=>m.id===id)?.name||'담당자 미지정';
 function button(label,fn){const b=el('button',label);b.addEventListener('click',fn);return b;}
+function renderText(value){
+  const content=document.createDocumentFragment();
+  const lines=String(value).split(/\r?\n/);
+  const cells=line=>line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(cell=>cell.trim());
+  const isRow=line=>line!==undefined&&/^\s*\|.*\|\s*$/.test(line);
+  const isDivider=line=>isRow(line)&&cells(line).every(cell=>/^:?-{3,}:?$/.test(cell));
+  let text=[];
+  const flush=()=>{if(text.join('\n').trim())content.append(el('p',text.join('\n')));text=[];};
+  for(let i=0;i<lines.length;i++){
+    if(!isRow(lines[i])||!isDivider(lines[i+1])){text.push(lines[i]);continue;}
+    flush();
+    const headers=cells(lines[i]),alignments=cells(lines[i+1]);
+    const wrapper=el('div',undefined,'table-scroll');
+    wrapper.tabIndex=0;wrapper.setAttribute('role','region');
+    const table=el('table',undefined,'content-table'),head=el('thead'),body=el('tbody');
+    const row=(values,header=false)=>{
+      const tr=el('tr');
+      for(let column=0;column<headers.length;column++){
+        const cell=el(header?'th':'td',values[column]||'');
+        if(header)cell.scope='col';
+        const alignment=alignments[column]||'';
+        cell.style.textAlign=alignment.endsWith(':')?(alignment.startsWith(':')?'center':'right'):'left';
+        tr.append(cell);
+      }
+      return tr;
+    };
+    wrapper.setAttribute('aria-label',headers.join(' / '));
+    head.append(row(headers,true));i+=2;
+    while(i<lines.length&&isRow(lines[i])&&!isDivider(lines[i])){body.append(row(cells(lines[i])));i++;}
+    i--;table.append(head,body);wrapper.append(table);content.append(wrapper);
+  }
+  flush();return content;
+}
 const memberCases=id=>published.filter(c=>c.memberId===id);
 const representative=id=>{const records=memberCases(id);return records.find(c=>c.featured)||records[0];};
 for(const [n,label] of [[members.length,'개발자'],[published.length,'트러블슈팅']]){
@@ -43,6 +76,6 @@ function showMember(id){
   article.append(list);
 }
 function openArticle(title){const heading=el('h1',title);heading.id='detail-title';$('article').replaceChildren(heading);if(!$('detail').open)$('detail').showModal();$('detail').scrollTop=0;}
-function showCase(c){openArticle(c.title);const a=$('article');a.prepend(button('← '+person(c.memberId)+'의 전체 기록',()=>showMember(c.memberId)));a.append(el('p',c.category+' · '+c.tags.join(', '),'tag'));const sections=[['1. 문제 발생 배경',c.background],['2. 실제 발생한 오류 및 증상',c.symptoms],['3. 원인 분석 과정',c.analysis],['4. 해결 방법 및 대안 비교',c.alternatives],['5. 최종 기술 선택 이유',c.decision]];for(const [t,v] of sections)a.append(el('h3',t),el('p',v||'미작성'));a.append(el('h3','6. 변경 전·후 코드'),el('h4','Before'),el('pre',c.beforeCode||'해당 없음'),el('h4','After'),el('pre',c.afterCode||'해당 없음'),el('h3','7. 테스트 및 검증 결과'),el('p',c.verification||'미작성'),el('h3','8. 기술적 한계 및 개선 방향'),el('p',c.limitations||'미작성'),el('h3','9. 관련 Issue·PR·Commit'));let valid=0;for(const l of c.links||[]){try{const u=new URL(l.url);if(!['https:','http:'].includes(u.protocol))continue;const link=el('a',l.label);link.href=u.href;link.target='_blank';link.rel='noopener noreferrer';const p=el('p');p.append(link);a.append(p);valid++;}catch{}}if(!valid)a.append(el('p','등록된 링크 없음'));a.append(el('h3','10. 담당 개발자'),el('p',person(c.memberId)));}
+function showCase(c){openArticle(c.title);const a=$('article');a.prepend(button('← '+person(c.memberId)+'의 전체 기록',()=>showMember(c.memberId)));a.append(el('p',c.category+' · '+c.tags.join(', '),'tag'));const sections=[['1. 문제 발생 배경',c.background],['2. 실제 발생한 오류 및 증상',c.symptoms],['3. 원인 분석 과정',c.analysis],['4. 해결 방법 및 대안 비교',c.alternatives],['5. 최종 기술 선택 이유',c.decision]];for(const [t,v] of sections)a.append(el('h3',t),renderText(v||'미작성'));a.append(el('h3','6. 변경 전·후 코드'),el('h4','Before'),el('pre',c.beforeCode||'해당 없음'),el('h4','After'),el('pre',c.afterCode||'해당 없음'),el('h3','7. 테스트 및 검증 결과'),renderText(c.verification||'미작성'),el('h3','8. 기술적 한계 및 개선 방향'),renderText(c.limitations||'미작성'),el('h3','9. 관련 Issue·PR·Commit'));let valid=0;for(const l of c.links||[]){try{const u=new URL(l.url);if(!['https:','http:'].includes(u.protocol))continue;const link=el('a',l.label);link.href=u.href;link.target='_blank';link.rel='noopener noreferrer';const p=el('p');p.append(link);a.append(p);valid++;}catch{}}if(!valid)a.append(el('p','등록된 링크 없음'));a.append(el('h3','10. 담당 개발자'),el('p',person(c.memberId)));}
 $('close').addEventListener('click',()=>$('detail').close());$('detail').addEventListener('click',e=>{if(e.target===$('detail'))$('detail').close();});
 let theme='light';try{theme=localStorage.getItem('devlog-theme')|| (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}catch{}document.documentElement.dataset.theme=theme;$('theme').addEventListener('click',()=>{theme=theme==='dark'?'light':'dark';document.documentElement.dataset.theme=theme;try{localStorage.setItem('devlog-theme',theme);}catch{}});

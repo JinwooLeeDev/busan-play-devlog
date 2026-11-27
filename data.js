@@ -1,4 +1,4 @@
-// 팀원 정보: 사용자 제공 원본 유지
+// 팀원 정보
 const members = [
   {
     "id": "m1",
@@ -32,7 +32,7 @@ const members = [
   }
 ];
 
-// 공개 문서: draft:false / 대표 문서: featured:true
+// 공개 문서
 const cases = [
   {
     "id": "case-001",
@@ -51,10 +51,9 @@ const cases = [
     "decision": "Event 저장·수정 생명주기에서 번역 요청 이벤트를 연결하고 AFTER_COMMIT 이후 요청을 등록하도록 구성했다. 번역 저장소는 REQUIRES_NEW를 이용한 별도 트랜잭션으로 분리하여 저장 오류가 기존 핵심 처리에 영향을 주는 범위를 줄였다. 조회에서는 원본 해시와 일치하는 번역을 우선 사용하고 목록은 일괄 조회하며, 번역 결과는 DTO에만 반영한다. 번역이 없거나 처리 중 오류가 발생하면 원문을 반환한다. 영어 선요청과 일본어·중국어 지연 요청을 결합해 사용량과 사용자 경험 사이의 균형을 고려했다. AFTER_COMMIT 자체가 비동기 실행을 보장하는 것은 아니며, 실제 번역 처리는 별도 워커 구조로 구분했다.",
     "beforeCode": "// 검토했던 초기 방식 (의사 코드, 실제 변경 전 소스 아님)\n행사 조회 → 외부 번역 API 호출 → 번역 응답 반환",
     "afterCode": "// 최종 구조 요약 (의사 코드)\n행사 저장·변경 → 핵심 트랜잭션 커밋\n→ AFTER_COMMIT → 번역 요청 등록\n워커 → Gemini 호출 → 번역 저장\n행사 조회 → 원본 해시 기준 번역 일괄 조회\n→ 유효한 번역은 DTO에 반영\n→ 번역 없음 또는 실패 시 원문 반환",
-    "verification": "최초 모델 호출 404 이후 모델 설정을 변경하여 HTTP 200을 확인했다. 행사 ID 2의 영어 번역 성공 호출 1회, DB 저장 및 동일 번역 재조회 시 추가 호출 0회를 확인했다. PR #163에는 번역 관련 핵심 테스트 14개에 대한 기록이 있다. 이는 특정 행사에 대한 기능 검증이며 전체 서비스의 응답 시간이나 비용 절감률을 측정한 결과는 아니다.",
+    "verification": "최초 모델 호출 404 이후 모델 설정을 변경하여 HTTP 200을 확인했다. 행사 ID 2의 영어 번역 성공 호출 1회, DB 저장 및 동일 번역 재조회 시 추가 호출 0회를 확인했다. 관련 구현 기록에는 번역 관련 핵심 테스트 14개에 대한 기록이 있다. 이는 특정 행사에 대한 기능 검증이며 전체 서비스의 응답 시간이나 비용 절감률을 측정한 결과는 아니다.",
     "limitations": "자동 번역 워커는 기본 비활성화 상태이므로 지속적인 운영 번역이 검증된 것은 아니다. 대량 행사에 대한 부하 테스트, 언어별 번역 품질 평가, 재시도·실패 작업 관리 및 API 사용량 모니터링이 필요하다. 커밋 이후 요청 등록이 실패하는 경우에 대비한 재처리 정책도 개선 대상으로 남아 있다.",
-    "links": [
-    ],
+    "links": [],
     "draft": false,
     "featured": true,
     "summary": "번역 결과를 DB에 저장·재사용하고 핵심 커밋 이후 요청을 등록하여 외부 API 의존성을 분리했다."
@@ -78,10 +77,7 @@ const cases = [
     "afterCode": "// 설명용 구조 (실제 템플릿 키 및 문법을 그대로 옮긴 것은 아님)\n메시지 키 + 현재 Locale → MessageSource → 언어별 UI 문구\n비회원 언어 선택 → Locale 쿠키\n회원가입·로그인 → 회원 언어 설정 연동\n행사 콘텐츠 → 별도 번역 저장소",
     "verification": "정적 UI 4개 언어, 1,524개 메시지 키 구성 기록을 확인했다. 초기 언어 선택, 회원가입 저장, 로그인 동기화, 로그아웃 유지, 요청 검증 및 복귀 URL 관련 초기 단계 테스트 38개 기록이 있다. 모든 번역 문구의 자연스러움이나 전체 화면의 언어별 표시를 정량 평가한 것은 아니다.",
     "limitations": "메시지 키 누락과 언어별 표현 품질을 지속적으로 점검해야 한다. 언어별 문자열 길이에 따른 UI 깨짐 및 접근성 검증, 번역 리소스 변경 시 누락 키 자동 검사 등을 추가할 수 있다.",
-    "links": [
-      {
-      }
-    ],
+    "links": [],
     "draft": false,
     "featured": false,
     "summary": "정적 메시지와 동적 콘텐츠의 번역 책임을 분리하고 로그인 전후 언어 설정을 유지했다."
@@ -127,12 +123,217 @@ const cases = [
     "decision": "FileStorage 인터페이스와 LocalFileStorage 구현체, FileValidator로 저장 및 검증 책임을 분리했다. PDF/JPEG/PNG 허용, 파일 시그니처 확인, 실제 읽은 바이트 크기 제한, UUID 저장 키 생성, 경로 정규화 및 심볼릭 링크 검사를 적용했다. 기업 정보에는 저장 키를 관리하며 DB 저장 또는 커밋 실패 시 이미 저장한 파일을 정리하는 보상 처리를 구성했다. 향후 외부 스토리지 구현체로 전환할 때 도메인 변경 범위를 줄일 수 있도록 했다.",
     "beforeCode": "// 설계 비교용 의사 코드 (실제 기존 소스 아님)\n파일 저장 → 기업 정보 DB 저장\n// DB 실패 시 파일이 남을 수 있음",
     "afterCode": "// 구현 구조 요약 (의사 코드)\nFileValidator → 형식·시그니처·크기 검증\nFileStorage / LocalFileStorage → UUID 저장 키 생성 및 저장\n기업 정보 DB 저장 → 저장 키 관리\nDB 저장·커밋 실패 → 저장 파일 정리",
-    "verification": "PR #65 및 #66 구현 기록에서 PDF/JPEG/PNG 허용, 파일 10MB·요청 12MB 제한, 실제 바이트 제한, 경로 검증 및 실패 정리 로직을 확인했다. 이번 문서 작성 과정에서 테스트를 재실행하지 않았으며 실제 장애 상황에서의 정리 성공률을 측정한 것은 아니다.",
+    "verification": "관련 구현 기록 및  구현 기록에서 PDF/JPEG/PNG 허용, 파일 10MB·요청 12MB 제한, 실제 바이트 제한, 경로 검증 및 실패 정리 로직을 확인했다. 이번 문서 작성 과정에서 테스트를 재실행하지 않았으며 실제 장애 상황에서의 정리 성공률을 측정한 것은 아니다.",
     "limitations": "프로세스 강제 종료 또는 파일 삭제 실패 시 고아 파일이 남을 수 있다. 파일과 DB 간 완전한 원자성을 보장하는 구조는 아니므로 정기적인 고아 파일 정리, 삭제 실패 재처리 및 외부 스토리지 전환을 검토할 수 있다. 파일 시그니처 검증만으로 악성 파일 여부를 완전히 판단할 수는 없다.",
-    "links": [
-    ],
+    "links": [],
     "draft": false,
     "featured": false,
     "summary": "파일 검증 및 저장 책임을 분리하고 DB 저장 실패 시 파일을 정리했다."
+  },
+  {
+    "id": "case-005",
+    "memberId": "m4",
+    "title": "마지막 한 자리 동시 신청 시 정원 초과 → 회차 1행 비관적 락으로 차단",
+    "category": "Backend",
+    "tags": [
+      "Spring Boot",
+      "JPA",
+      "Pessimistic Lock",
+      "Concurrency",
+      "Transaction"
+    ],
+    "draft": false,
+    "featured": false,
+    "links": [],
+    "summary": "인기 회차에 신청이 몰리면 두 요청이 같은 잔여석을 보고 둘 다 확정되어 정원을 넘을 수 있었습니다. 회차 1행을 비관적 락으로 잠그고 정원을 필드로 관리해, 동시 신청에도 확정 인원이 정원을 넘지 않게 했습니다.\n\n🔴 문제 두 요청이 같은 잔여석을 보고 둘 다 확정될 수 있었다\n🟡 판단 낙관적 락·분산 락 대신 회차 1행만 짧게 잠그는 비관적 락\n🟢 결과 정원 1명에 2명 동시 신청 → 확정 1 · 대기 1, 차감도 각자 1번",
+    "background": "- f/4에서 회차별 정원과 대기열을 만들고 있었습니다.\n- 정원이 차면 대기로 넘기고, 확정 좌석이 비면 접수 번호 순으로 대기자를 자동 승격해야 합니다.\n- 부산 문화행사·팝업은 인기 회차에 신청이 짧은 시간에 몰리는 서비스라, 정원 판단이 동시에 일어나는 상황을 전제로 설계해야 했습니다.",
+    "symptoms": "- 예상: 마지막 1자리에 2명이 동시에 신청하면 1명 확정, 1명 대기\n- 위험: 두 요청이 같은 잔여석 1개를 동시에 읽고 둘 다 확정 → 정원 초과",
+    "analysis": "- 잔여석을 count 쿼리로 세면 세는 순간과 저장하는 순간 사이에 다른 요청이 끼어들 수 있습니다.\n- 즉, \"읽고 → 판단하고 → 쓰는\" 세 단계가 하나로 묶여 있지 않은 것이 원인입니다.\n- 같은 회차의 좌석을 바꾸는 작업이 신청만이 아니라 취소 · 거절 · 승격까지 있다는 점도 확인했습니다. 이 네 가지가 모두 같은 규칙으로 줄을 서야 했습니다.",
+    "alternatives": "| 방법          | 장점                         | 단점 / 판단                                          |\n| ------------- | ---------------------------- | ---------------------------------------------------- |\n| 낙관적 락     | 평소에는 잠금 비용이 없음     | 인기 회차는 충돌이 잦아 재시도가 몰림 → ❌        |\n| 분산 락       | 서버가 여러 대여도 동작       | 현재 DB가 하나라 도구만 늘어남 → ❌               |\n| 비관적 락 | 충돌 시 기다렸다가 순서대로 처리 | 잠금 범위를 회차 1행으로 좁히면 대기 비용이 작음 → ✅ |",
+    "decision": "- 회차 1행만 짧게 잠그는 비관적 락(PESSIMISTIC_WRITE)을 적용했습니다.\n- 정원은 count 대신 필드로 관리하고, 락을 잡은 상태에서만 바꿉니다.\n- 안정성: 충돌이 잦은 자원에는 \"기다렸다가 한 명씩\"이 재시도 폭주보다 예측 가능합니다.\n- 유지보수성: 신청 · 취소 · 거절 · 승격이 모두 같은 락 하나를 거치므로 규칙이 하나입니다.\n- 일정: DB 하나로 해결되어 새 인프라가 필요 없습니다.",
+    "beforeCode": "// f/3 RegistrationService.applyForEvent() — 회차를 잠그지도, 정원을 확인하지도 않고 바로 저장\n@Transactional\npublic Registration applyForEvent(User user, EventSession session) {\n    boolean isPaidEvent = session.getFee() != null && session.getFee() > 0;\n    RegistrationStatus initialStatus;\n\n    if (isPaidEvent) {\n        if (user.getPoint() < session.getFee()) {\n            throw new Exception400(\"잔액이 부족합니다. (현재 잔액: \" + user.getPoint() + \")\");\n        }\n        user.deductPoint(session.getFee());\n        initialStatus = RegistrationStatus.PENDING_APPROVAL;\n    } else {\n        initialStatus = RegistrationStatus.WAITING;   // 정원 확인 없음\n    }\n\n    Registration registration = Registration.builder()\n            .user(user)\n            .session(session)              // 락 없이 넘겨받은 회차 그대로\n            .status(initialStatus)\n            .queueNumber(1)                // 임시 대기열 번호\n            .build();\n    return registrationRepository.save(registration);\n}\n\n// 출처: 해당 변경 (11-05, [f/3] feat(registration): 유료 행사 포인트 선차감 로직 및 테스트 구현)\n// 이후 변화: f/4 첫 커밋 해당 변경(11-05)에서 회차 비관적 락(findSessionWithPessimisticLock) + count 쿼리로 정원 판단 → f/5 해당 변경(11-10)에서 정원을 회차의 occupiedCount 필드로 관리하도록 변경",
+    "afterCode": "// EventSessionRepository — 회차 1행을 잠근다\n@Lock(LockModeType.PESSIMISTIC_WRITE)\n@Query(\"select s from EventSession s where s.id = :id\")\nOptional<EventSession> findByIdForUpdate(Long id);\n\n// 잠긴 상태에서 남은 자리를 확인하고 줄인다 (정원은 count 대신 필드로)\nif (session.hasRemainingSeat()) {\n    session.occupySeat();      // 자리 1개 차감\n    status = CONFIRMED;        // 확정\n} else {\n    status = WAITING;          // 대기 번호 발급\n}",
+    "verification": "- 동시성 테스트: 정원 1명인 회차에 2명 동시 신청 → 확정 1 · 대기 1, 각자 포인트 한 번만 차감\n- 신청 · 취소 · 거절 · 승격이 같은 회차 락을 거쳐 한 줄로 실행되는 것을 확인",
+    "limitations": "- 한계: DB 행 락이라 서버를 여러 대로 늘리고 DB까지 나뉘는 구조가 되면 다시 검토해야 합니다. 같은 회차에 요청이 아주 많이 몰리면 락 대기 시간이 길어질 수 있습니다(측정하지는 않았습니다).\n- 개선 방향: 트래픽이 커지면 분산 락이나 대기열(큐) 방식을 다시 비교하고, 락 대기 시간을 먼저 측정해 판단하겠습니다.\n- 배운 점: 락은 \"어떤 락을 쓰나\"보다 \"무엇을, 얼마나 좁게, 어떤 작업들이 같이 잠그나\"를 먼저 정해야 합니다."
+  },
+  {
+    "id": "case-006",
+    "memberId": "m4",
+    "title": "검증보다 결제가 먼저 일어나던 신청 흐름 → 검증·결제·저장 한 트랜잭션으로 재설계",
+    "category": "Payment",
+    "tags": [
+      "Spring Boot",
+      "Transaction",
+      "Payment",
+      "Circular Dependency",
+      "Refactoring"
+    ],
+    "draft": false,
+    "featured": false,
+    "links": [],
+    "summary": "신청 서비스가 검증보다 결제를 먼저 불러, 중복 신청에 '이미 결제된 행사입니다'가 나오고 검증에 걸릴 신청도 돈이 먼저 움직일 수 있었습니다. 검증 → 결제 → 저장 순서만 아는 흐름 클래스를 만들어 한 트랜잭션으로 묶었습니다.\n\n🔴 문제 신청 검증 전에 결제가 먼저 호출되어, 엉뚱한 안내가 나오고 돈이 먼저 움직일 수 있었다\n🟡 판단 \"돈이 움직이기 전에 검증한다\" + 순환 참조를 피하려 순서만 아는 흐름 클래스 분리\n🟢 결과 검증 실패 시 차감 0, 저장 실패 시 결제까지 롤백",
+    "background": "- f/5에서 참가 신청 API를 만들며 결제는 포인트 파트에 위임했습니다.\n- f/6에서 화면과 연결하는 중이었고, 유료 행사는 신청할 때 포인트를 먼저 차감하는 구조(대기 신청도 선결제)였습니다.\n- 돈이 오가는 기능이라 신청과 결제가 항상 함께 성공하거나 함께 실패해야 했습니다.",
+    "symptoms": "- 예상: 이미 신청한 회차에 다시 신청하면 신청 쪽 안내(중복 신청)가 나온다\n- 실제: 결제 쪽 안내인 이미 결제된 행사입니다가 나왔다\n- 같은 이유로 검증에 걸려야 할 신청도 결제가 먼저 일어날 수 있는 구조였다",
+    "analysis": "- 엉뚱한 메시지가 어디서 나오는지 따라가 보니, 신청 서비스가 검증보다 결제를 먼저 호출하고 있었습니다. 그래서 결제 파트의 중복 검사가 먼저 걸린 것입니다.\n- 순서만 바꾸려 해도 문제가 있었습니다. 신청 서비스와 결제 서비스가 서로를 주입하면 순환 참조가 생깁니다.\n- 최종 원인: \"누가 먼저 무엇을 하는지\"를 책임지는 곳이 없었다는 구조 문제였습니다.",
+    "alternatives": "| 방법                                 | 장점             | 단점 / 판단                                                   |\n| ------------------------------------ | ---------------- | ------------------------------------------------------------- |\n| 신청 서비스 안에서 호출 순서만 변경  | 수정 범위가 작음 | 신청 ↔ 결제가 서로 주입하게 되어 순환 참조 위험 → ❌      |\n| 순서만 아는 흐름 클래스 분리     | 두 서비스가 서로를 몰라도 됨, 순서가 한 곳에 보임 | 클래스 하나가 늘어남 → ✅ (포인트 담당자와 합의) |",
+    "decision": "- 원칙: \"돈이 움직이기 전에 검증한다.\"\n- 포인트 담당자와 흐름을 같이 그려 보고, 검증 → 결제 → 저장 순서만 아는 흐름 클래스를 두기로 합의했습니다.\n- 세 단계를 하나의 @Transactional로 묶어, 어느 단계가 실패해도 전부 되돌아가게 했습니다.\n- 신청과 결제를 purchase_id로 1:1 연결해, 취소 후 다시 신청해도 결제가 섞이지 않게 했습니다.\n- 유지보수성: 순서가 코드 세 줄에 그대로 보여, 다른 팀원도 흐름을 바로 읽을 수 있습니다.",
+    "beforeCode": "// PurchaseController.purchaseAction() — 결제 화면의 [결제하기] 요청\n@PostMapping(\"/event/purchase/{id}\")\npublic String purchaseAction(@PathVariable(name = \"id\") Long eventId , HttpSession session) {\n    LoginIdentity loginIdentity = LoginSession.requireIdentity(session);\n\n    registrationService.apply(eventId , loginIdentity);   // ① 신청 — 이 안에서 이미 결제(purchase)를 호출\n\n    purchaseService.purchase(eventId , loginIdentity);    // ② 결제를 한 번 더 → \"이미 결제처리된 행사입니다\"\n\n    return \"redirect:/mypage\"; // TODO 결제처리 완료후 어떤 페이지로 이동시킬지 추후 결정. 일단 myPage로.\n}\n\n// RegistrationService.apply() 안 — 신청 서비스가 결제 서비스를 직접 주입해 호출\n// 4. 결제 위임 (잔액 부족 / 중복 결제 예외는 PurchaseService 가 던짐 → 점유·접수번호 포함 전체 롤백)\npurchaseService.purchase(sessionId, loginIdentity);\n\n// 출처: 컨트롤러 해당 변경 (11-10 17:39, refactor : 패키지 구조 변경 수정), 신청 서비스 해당 변경 (11-10 12:39, (구현중)feat: 참가 신청 PurchaseService 연동…)\n// 컨트롤러에는 @Transactional이 없어 ①과 ②가 서로 다른 트랜잭션이었습니다. ①이 커밋된 뒤 ②가 실패하므로, 신청·결제는 저장되고 화면에는 결제 오류가 나옵니다.\n// 수정: 해당 변경(11-12)에서 컨트롤러의 apply() 호출을 빼고, 해당 변경(11-12, refactor(registration): 신청과 결제를 검증-결제-저장 흐름 클래스로 분리하고 신청에 결제 연결)에서 아래 흐름 클래스를 만들었습니다.",
+    "afterCode": "@Transactional   // ①②③ 중 하나라도 실패하면 전부 롤백\npublic RegistrationRes.ApplyDto applyWithPayment(Long sessionId, LoginIdentity login) {\n    ApplyContext ctx = registrationService.prepareApply(sessionId, login); // ① 검증만 — 실패하면 차감 시도조차 안 함\n    Purchase purchase = purchaseService.pay(ctx.user(), ctx.session());    // ② 결제 — 잔액 부족·중복 결제면 예외 → 전체 롤백\n    return registrationService.completeApply(ctx, purchase);               // ③ 신청 저장 + 결제 연결\n}",
+    "verification": "- 검증 실패 → 포인트 그대로, 저장 실패 → 결제까지 롤백 확인\n- 연타·동시 신청 테스트: 같은 계정으로 동시에 2번 신청 → 1건 성공, 1건은 이미 신청한 행사 회차입니다(400) → 신청 1건 · 결제 1건 · 차감 1번\n- 락 타임아웃이나 DB 오류를 정상 거부로 착각하지 않도록 예외 종류까지 확인\n- 여러 차례에 나눠 main에 반영",
+    "limitations": "- 한계: DB 유니크 제약은 두지 않았습니다. 취소·거절 후 재신청을 허용해야 해서, 대신 회차 락 안에서 '진행 중인 신청'만 검사합니다. 따라서 이 검사는 락을 거치는 코드 경로에서만 보장됩니다.\n- 한계: 포인트 결제가 같은 DB 안에 있어서 한 트랜잭션으로 묶을 수 있었습니다. 외부 PG 결제로 바뀌면 이 방식만으로는 롤백할 수 없습니다.\n- 개선 방향: 외부 결제가 붙으면 결제 취소(보상) 처리와 멱등 키를 함께 설계하겠습니다. '진행 중 신청 1건'을 DB에서도 보장할 방법(부분 유니크 인덱스 등)을 검토하겠습니다.\n- 배운 점: 돈이 얽힌 기능은 구현 전에 트랜잭션 경계와 호출 순서를 담당자와 먼저 그림으로 합의해야 구조를 뒤집는 비용이 줄어듭니다."
+  },
+  {
+    "id": "case-007",
+    "memberId": "m4",
+    "title": "취소와 대기자 승격이 겹치면 좌석 반납이 빠지는 문제 → 락 순서 고정과 환불 후 반납",
+    "category": "Backend",
+    "tags": [
+      "JPA",
+      "Pessimistic Lock",
+      "Transaction",
+      "Refund",
+      "Race Condition"
+    ],
+    "draft": false,
+    "featured": false,
+    "links": [],
+    "summary": "취소할 때 신청을 먼저 읽고 회차 락을 나중에 잡아, 그 사이 대기자 승격이 일어나면 오래된 상태로 판단해 좌석 반납이 빠질 수 있었습니다. 락 순서를 고정하고 환불 성공 뒤에 좌석을 반납하도록 바꿔 '취소됐는데 환불 안 됨' 상태를 없앴습니다.\n\n🔴 문제 신청을 먼저 읽고 락을 나중에 잡아, 그 사이 승격이 일어나면 좌석 반납이 빠질 수 있었다\n🟡 판단 락 순서를 \"회차 락 → 신청 조회\"로 고정, 환불은 같은 트랜잭션에서, 좌석 반납은 환불 뒤에\n🟢 결과 겹쳐도 좌석 수 일치, 환불 실패 시 취소·승격까지 롤백",
+    "background": "- f/6에서 본인 취소와 환불을 연결하고 있었습니다.\n- 환불 규칙: 4일 전 전액 / 3일 전 2/3 / 2일 전 1/2 / 1일 전 0P, 대기 중 취소는 전액\n- 확정자가 취소하면 좌석을 반납하고 대기자를 승격해야 하므로, 취소 · 환불 · 좌석 · 승격이 한 번에 맞아떨어져야 했습니다.",
+    "symptoms": "- 테스트하다가 직접 찾은 버그입니다.\n- 예상: 확정자가 취소하면 좌석 1개 반납 → 대기자 1명 승격\n- 위험 1: 취소와 승격이 겹치면 좌석 반납이 빠져 좌석 수가 어긋남\n- 위험 2: 환불이 실패하면 '취소는 됐는데 환불은 안 된' 상태가 남음",
+    "analysis": "- 취소 코드를 따라가 보니 신청을 먼저 읽고, 회차 락은 나중에 잡고 있었습니다.\n- 그 사이에 다른 요청이 승격을 처리하면, 취소 쪽은 락 이전에 읽은 오래된 상태를 기준으로 \"좌석을 반납할지\"를 판단합니다.\n- 환불은 취소와 따로 처리되고 있어서, 환불만 실패하는 경우를 막을 장치가 없었습니다.",
+    "alternatives": "| 방법                                       | 판단                                                            |\n| ------------------------------------------ | --------------------------------------------------------------- |\n| 지금 순서 유지 + 반납 직전에 상태 다시 확인 | 확인과 반납 사이에 또 끼어들 수 있어 근본 해결이 아님 → ❌      |\n| 환불을 취소 뒤 별도 처리                   | 환불 실패 시 '취소됨 + 환불 안 됨' 상태가 남음 → ❌              |\n| 락 순서 고정 + 같은 트랜잭션에서 환불 + 환불 후 반납 | 상태 판단과 변경이 모두 락 안에서, 실패 시 전부 롤백 → ✅ |",
+    "decision": "1. 락 순서를 한 방향으로 고정: 항상 회차 락 → 그다음 신청 조회 (최신 상태로 판단)\n2. 환불을 취소와 같은 트랜잭션에서 호출 (실패하면 취소도 롤백)\n3. 좌석 반납 · 대기자 승격은 환불이 성공한 뒤에 (실패하면 다른 사람의 승격도 일어나지 않음)\n4. 환불 금액은 포인트 파트의 공통 RefundPolicy 하나로 계산 (화면 예상 환불액 = 실제 환불액)\n\n안정성과 데이터 일치를 가장 우선했습니다. 금액과 좌석이 어긋나면 사용자 신뢰에 바로 영향을 주기 때문입니다.",
+    "beforeCode": "// RegistrationService.cancel() — 신청을 먼저 읽고, 회차 락은 나중에\npublic void cancel(Long registrationId, LoginIdentity loginIdentity) {\n    if (!loginIdentity.isUser()) {\n        throw new RegistrationForbiddenException(\"개인 회원만 신청을 취소할 수 있습니다\");\n    }\n\n    Registration registration = findRegistration(registrationId);   // ① 락 없이 신청을 읽음\n    if (!registration.isOwnedBy(loginIdentity.getId())) {\n        throw new RegistrationForbiddenException(\"본인의 신청만 취소할 수 있습니다\");\n    }\n\n    // 승격 로직과 동시 신청이 겹치지 않도록 회차 락\n    EventSession session = lockSession(registration.getEventSession().getId());   // ② 락은 나중에\n\n    boolean releasedSeat = registration.getStatus().isSeatOccupying();   // ①에서 읽은 상태로 판단\n    registration.cancel();\n    recordHistory(registration, RegistrationStatus.CANCELLED, registration.getUser(), \"본인 취소\");\n\n    // TODO: 포인트 파트 환불 메서드 완성 후 연결\n    // purchaseService.refund(session.getId(), registration.getUser().getId());   // 환불이 취소와 묶여 있지 않음\n\n    if (releasedSeat) {\n        session.releaseSeat();\n        promoteWaitingUsersIfAny(session);\n    }\n}\n\n// 출처: 해당 변경 (11-10, (구현중)feat: 참가 신청 PurchaseService 연동, 대기열 승격, 이력 기록 및 API 인증 보완)\n// 수정: 해당 변경(11-12)에서 회차 번호만 먼저 조회해 회차 락을 잡은 뒤 신청을 읽는 findRegistrationWithSessionLock()을 추가했습니다. 환불 연결은 해당 변경(11-16, feat(registration): 참가 취소 시 포인트 환불 연동…)입니다.\n\n// 해당 변경 — 회차 락 → 신청 조회 순서로 고정\nprivate Registration findRegistrationWithSessionLock(Long registrationId) {\n    Long sessionId = registrationRepository.findSessionIdById(registrationId)\n            .orElseThrow(() -> new Exception404(\"신청 내역을 찾을 수 없습니다\"));\n    lockSession(sessionId);\n    return findRegistration(registrationId);\n}",
+    "afterCode": "// 회차 락을 먼저 잡은 뒤 신청을 읽는다\nRegistrationStatus before = registration.getStatus();   // 회차 락을 잡은 뒤 읽은 최신 상태\nregistration.cancel();  recordHistory(...);  publishStatusChanged(registration, before);\nif (registration.getPurchase() != null)\n    refundService.refundUser(userId, registration, before);   // 실패하면 여기서 전체 롤백\nif (before.isSeatOccupying()) { session.releaseSeat(); promoteWaitingUsersIfAny(session); }",
+    "verification": "- 취소 · 거절 · 승격이 겹쳐도 좌석 수가 맞는 것을 확인\n- 환불이 실패하면 취소도, 다른 사람의 승격도 함께 롤백되는 것을 확인\n- 화면의 예상 환불액과 실제 환불액이 같은 정책으로 계산되는 것을 확인",
+    "limitations": "- 한계: 락 순서는 코드 규칙이라, 새 기능을 만드는 사람이 순서를 지키지 않으면 같은 문제가 다시 생길 수 있습니다.\n- 개선 방향: \"회차 락 먼저\"를 공통 메서드로 감싸 우회할 수 없게 하고, 취소·승격 동시 실행 테스트를 자동 회귀 테스트로 남기겠습니다.\n- 배운 점: 동시성 버그는 기능이 정상 동작할 때는 보이지 않습니다. \"두 작업이 동시에 오면?\"을 직접 만들어 보는 테스트가 있어야 찾을 수 있습니다."
+  },
+  {
+    "id": "case-008",
+    "memberId": "m4",
+    "title": "신청 상태에 따른 커뮤니티 자동 입장·퇴장 → 커밋 후 이벤트로 결합과 불일치 제거",
+    "category": "Backend",
+    "tags": [
+      "Spring Boot",
+      "TransactionalEventListener",
+      "WebSocket",
+      "STOMP",
+      "Scheduler"
+    ],
+    "draft": false,
+    "featured": false,
+    "links": [],
+    "summary": "참가 확정·취소에 따라 회차 커뮤니티에 자동 입장·퇴장시켜야 했는데, 신청 서비스가 커뮤니티를 직접 부르면 결합이 커지고 롤백 시 불일치가 생길 수 있었습니다. 상태 변경 이벤트를 커밋 후에만 반영하는 구조로 분리해, 이후 기능도 신청 코드 수정 없이 연결했습니다.\n\n🔴 문제 신청 서비스가 커뮤니티를 직접 부르면 결합이 커지고, 롤백된 취소에도 퇴장만 일어날 수 있었다\n🟡 판단 신청은 상태 변경 이벤트만 발행, 커뮤니티는 커밋 후(AFTER_COMMIT)에만 반영 + 재동기화 안전망\n🟢 결과 나중에 생긴 기업 거절·회차 취소도 신청 코드 수정 없이 연결",
+    "background": "- f/40에서 회차별 실시간 커뮤니티(STOMP 채팅 · 공지 · 자정 종료)를 만들고 있었습니다.\n- 요구사항: 참가가 확정되면 자동 입장, 취소·거절되면 자동 퇴장\n- 커뮤니티는 클래스 22개 규모라, 신청 코드와 얽히면 양쪽 모두 고치기 어려워질 상황이었습니다.",
+    "symptoms": "설계 단계에서 확인한 위험입니다.\n- 신청 서비스가 커뮤니티를 직접 부르면 신청 코드가 커뮤니티를 알게 되어 결합이 커짐\n- 취소가 롤백됐는데 퇴장만 일어나는 불일치 가능\n- 커뮤니티 반영이 실패하면 신청 응답까지 실패할 수 있음\n- 자정 종료를 스케줄러에만 맡기면, 서버가 꺼져 있던 시간에는 방이 닫히지 않음",
+    "analysis": "- 핵심은 \"신청 트랜잭션이 확정(커밋)되기 전에 다른 기능이 움직이면 안 된다\"는 점이었습니다.\n- 커뮤니티 입장·퇴장은 신청의 결과이지 신청의 일부가 아니라고 판단했습니다. 커뮤니티가 실패해도 신청은 성공해야 합니다.",
+    "alternatives": "| 방법                                  | 판단                                                         |\n| ------------------------------------- | ------------------------------------------------------------ |\n| 신청 서비스에서 커뮤니티 직접 호출     | 가장 쉽지만 결합 증가, 롤백 불일치, 실패 전파 → ❌            |\n| 일반 이벤트(@EventListener)         | 결합은 줄지만 커밋 전에 실행되어 롤백 불일치는 남음 → ❌      |\n| 커밋 후 이벤트(AFTER_COMMIT)    | 커밋된 변경만 반영, 실패해도 신청 응답은 정상 → ✅           |",
+    "decision": "| 장치                                     | 역할                                                          |\n| ---------------------------------------- | ------------------------------------------------------------- |\n| 상태 변경 이벤트 발행                | 신청 서비스는 \"상태가 바뀌었다\"는 사실만 알림                 |\n| AFTER_COMMIT 리스너                    | 커밋된 변경만 커뮤니티에 반영                             |\n| 실패 시 로그 + 서버 시작 시 재동기화 | 리스너가 실패해도 나중에 확정자 기준으로 다시 맞춤            |\n| 자정 종료 이중 차단                  | 스케줄러 + 화면 진입·메시지 전송 때 종료 시각 재계산          |\n| STOMP 권한 4겹 검사                  | 연결 · 구독/전송 · 저장 · 화면 출력(textContent)            |\n\n유지보수성을 가장 크게 봤습니다. 신청과 커뮤니티를 서로 모르게 두면, 새 상태가 생겨도 이벤트만 연결하면 됩니다.",
+    "beforeCode": "// 직접 호출 방식은 설계 단계에서 검토만 했고, 커밋한 적이 없습니다.\n// (저장소 전체 기록에서 신청 패키지가 CommunityService를 참조한 커밋 없음)\n// 이벤트 발행 전까지 신청 서비스에는 커뮤니티와 연결하는 코드가 없었습니다.\n// → 해당 변경 (11-16, feat(registration): 참가 신청 상태 변경 이벤트 발행)에서\n//   RegistrationStatusChangedEvent와 publishStatusChanged()를 추가해 처음부터 이벤트로 연결",
+    "afterCode": "@TransactionalEventListener(phase = AFTER_COMMIT)\nvoid onStatusChanged(RegistrationStatusChangedEvent e) {\n    try {\n        if (e.becameConfirmed()) community.join(...);\n        else if (e.leftConfirmed()) community.leave(...);\n    } catch (Exception ex) {\n        log.error(\"멤버십 반영 실패\", ex);   // 신청 응답은 정상\n    }\n}",
+    "verification": "- 확정 시 자동 입장, 취소·거절 시 자동 퇴장 확인\n- 이후 f/41의 기업 거절 · 회차 취소도 신청 코드를 바꾸지 않고 같은 이벤트로 연결됨\n- 서버 시작 시 확정자 기준 재동기화, 자정 종료 이중 차단이 동작하도록 구성",
+    "limitations": "- 한계: 리스너가 실패하면 서버를 다시 시작할 때까지 멤버십이 어긋난 채로 남을 수 있습니다. 실패는 로그로만 남습니다.\n- 한계: STOMP 브로커가 서버 메모리 내장 방식(enableSimpleBroker, CommunityWebSocketConfig.java:38)이라, 서버를 여러 대로 늘리면 메시지가 서버 사이에 공유되지 않습니다.\n- 개선 방향: 실패한 이벤트를 저장해 재시도하는 구조(아웃박스 등)를 검토하고, 서버를 확장할 때는 외부 메시지 브로커를 검토하겠습니다.\n- 배운 점: 다른 파트와 연결할 때는 \"이 작업이 실패하면 원래 작업도 실패해야 하나?\"를 먼저 물으면 직접 호출과 이벤트 중 무엇을 쓸지 정해집니다."
+  },
+  {
+    "id": "case-009",
+    "memberId": "m4",
+    "title": "기업 거절·회차 취소의 정책 빈칸 → 기준 통일과 호출 순서 고정으로 손해·이중 환불 차단",
+    "category": "Payment",
+    "tags": [
+      "Spring Boot",
+      "Business Rule",
+      "Refund",
+      "Transaction"
+    ],
+    "draft": false,
+    "featured": false,
+    "links": [],
+    "summary": "기업 거절과 회차 취소는 코드보다 정책의 빈칸이 먼저 문제였습니다. 빈칸을 질문으로 정리해 조장과 결정하고, 거절 기준 통일 · 검토 중 차단 · 호출 순서 고정으로 사용자 손해와 이중 환불을 막았습니다.\n\n🔴 문제 시작 후 거절 가능 여부, 검토 중 본인 취소 손해, 승인 시 이중 환불 위험 — 정책이 비어 있었다\n🟡 판단 질문으로 정리해 조장과 결정: '회차 시작 전' 기준 통일, 검토 중 차단, 일괄 정리는 환불 다음에\n🟢 결과 기업 거절 통합 테스트 6항목 통과, 이중 환불 없음",
+    "background": "- f/41에서 기업의 참가 거절(전액 환불)과 회차 취소 검토 중 신청·취소 차단을 만들고 있었습니다.\n- 회차 취소가 승인되면 참가자 전원 환불 · 신청 일괄 정리 · 커뮤니티 종료 · 기업 보증금 처리가 함께 일어납니다.",
+    "symptoms": "요구사항에 답이 없던 경우들입니다.\n- 회차가 시작된 뒤에도 기업이 거절할 수 있나?\n- 회차 취소 검토 중에 사용자가 본인 취소를 하면 부분 환불만 받고 손해를 본다\n- 회차 취소가 승인될 때 일괄 정리와 전원 환불이 겹치면 환불이 두 번 일어날 수 있다",
+    "analysis": "- 본인 취소 규칙(날짜별 환불)과 기업 거절 · 회차 취소 규칙이 서로 다른 기준으로 정해지면 사용자마다 결과가 달라진다는 점을 확인했습니다.\n- 회차 취소 승인 흐름을 단계별로 나눠 보니, 환불을 하는 곳이 두 군데가 되면 이중 환불이 생긴다는 것이 보였습니다.\n- 최종 원인: 기능이 아니라 정책과 호출 순서가 정해지지 않은 것이었습니다.",
+    "alternatives": "| 쟁점                  | 검토한 선택                                     | 결정                                     |\n| --------------------- | ----------------------------------------------- | ---------------------------------------- |\n| 거절 가능 시점        | 언제든 거절 / 회차 시작 전까지만                 | 시작 전까지 (본인 취소와 같은 기준) |\n| 검토 중 본인 취소     | 허용(부분 환불) / 차단 후 승인 시 전액 환불 안내 | 차단 + 안내                          |\n| 환불 위치             | 일괄 정리 안에서도 환불 / 전원 환불 한 곳에서만  | 전원 환불 한 곳, 일괄 정리는 환불 안 함 |",
+    "decision": "- 질문 목록을 정리해 조장(이진우)과 함께 결정했습니다.\n- 거절 기준 = '회차 시작 전'. 현재 시각과 시작 시각을 비교하므로 스케줄러 상태와 무관합니다.\n- 검토 중에는 신규 신청 · 본인 취소 차단, 안내 문구: 승인되면 결제한 포인트가 전액 환불됩니다\n- 회차 일괄 정리 순서를 고정: ① 회차 CANCELLED → ② 참가자 전원 전액 환불 → ③ 신청 일괄 정리(환불하지 않음) → ④ 기업 보증금 처리\n- 사용자 보호와 일관성을 기준으로 정했습니다. 같은 상황이면 누구나 같은 결과를 받아야 합니다.",
+    "beforeCode": "// 코드 변경 전 상태: 거절 기능 신규 개발로, 기존 코드는 없음\n// 정책 미정 상태 — 거절 가능 시점, 검토 중 취소, 환불 위치가 정해지지 않음",
+    "afterCode": "// reject() — 시각 기준이라 스케줄러와 무관\nif (!LocalDateTime.now().isBefore(session.getStartsAt()))\n    throw new Exception400(\"이미 시작된 회차의 신청은 거절할 수 없습니다\");\nregistration.reject();                     // 상태·이력·이벤트\nrefundService.refundByCompany(registration);",
+    "verification": "- 통합 테스트 기업 거절 6항목 모두 통과: 전액 환불, 이중 거절 방지, 시작 후 거절 차단 등\n- 이중 환불 없음 확인\n- 거절된 신청·환불이 '기업 거절'로 구분 표시되도록 후속 작업까지 진행",
+    "limitations": "- 한계: 호출 순서는 서비스 코드의 순서로만 지켜집니다. 다른 사람이 순서를 바꾸면 이중 환불이 다시 생길 수 있습니다.\n- 개선 방향: 환불에 \"이미 환불됨\" 검사를 결제 단위로 한 번 더 두고, 회차 취소 전체 흐름을 자동 테스트로 남기겠습니다.\n- 배운 점: 코드보다 먼저 \"시작 후에는? 검토 중에는? 두 번 일어나면?\" 같은 경계 질문을 만들고 결정권자와 정하면 구현이 단순해집니다."
+  },
+  {
+    "id": "case-010",
+    "memberId": "m4",
+    "title": "회차 id만 바꾸면 되는 QR 출석 위험 → HMAC 서명 QR과 회차 락 안 1회 저장",
+    "category": "Security",
+    "tags": [
+      "Spring Boot",
+      "HmacSHA256",
+      "QR",
+      "Pessimistic Lock",
+      "Mobile"
+    ],
+    "draft": false,
+    "featured": false,
+    "links": [],
+    "summary": "QR 출석은 주소의 회차 id만 바꾸면 다른 회차에 출석되거나, 연타로 중복 저장될 위험이 있었습니다. 회차 id를 HmacSHA256으로 서명한 QR과 회차 락 안 1회 저장으로 막고, 오류 대신 안내 문구를 보여 현장에서 바로 이해할 수 있게 했습니다.\n\n🔴 문제 주소의 회차 id만 바꾸면 다른 회차 출석, 연타 시 중복 저장, 휴대폰 오류 페이지\n🟡 판단 회차 id를 HMAC으로 서명한 QR + 확정자·시간·1회 규칙 + 예외 대신 안내 문구\n🟢 결과 변조·중복·미신청 차단, 실제 휴대폰으로 출석 완료 확인",
+    "background": "- f/42(F04)에서 현장 QR 출석을 만들고 있었습니다.\n- 출석한 사람만 후기를 쓸 수 있으므로, 출석 기록은 정확하고 위조할 수 없어야 했습니다.\n- 사용자는 행사장에서 휴대폰으로 한 번 인식하고 끝나야 했습니다.",
+    "symptoms": "설계 단계에서 확인한 위험입니다.\n- QR 주소의 회차 id만 바꾸면 다른 회차에 출석될 수 있음\n- 버튼 연타 → 출석이 두 번 저장될 수 있음\n- 휴대폰에 오류 페이지가 뜨면 현장에서 이유를 알 수 없음",
+    "analysis": "- QR에 회차 id만 넣으면 누구나 만들 수 있는 주소가 됩니다. 서버가 \"이 QR이 진짜 우리가 발급한 것인지\" 확인할 방법이 필요했습니다.\n- 중복은 \"이미 출석했나?\" 검사와 저장 사이에 다른 요청이 끼어들 수 있어서 생깁니다 (1번 동시성 문제와 같은 구조).\n- 화면 표시와 실제 저장이 서로 다른 검사를 쓰면, 화면은 \"가능\"인데 저장은 실패하는 어긋남이 생길 수 있다고 봤습니다.",
+    "alternatives": "| 방법                               | 판단                                                     |\n| ---------------------------------- | -------------------------------------------------------- |\n| 회차 id만 QR에 포함                | 구현은 쉽지만 id만 바꾸면 위조 가능 → ❌                  |\n| 회차 id + HmacSHA256 서명 코드 | 서버 비밀키 없이는 맞는 서명을 만들 수 없음 → ✅          |\n| 오류는 예외(에러 페이지)로 처리    | 현장 휴대폰에서 이유를 알 수 없음 → ❌                    |\n| 규칙 위반은 안내 문구로 반환   | \"이미 출석했습니다\"처럼 바로 이해 가능 → ✅              |",
+    "decision": "- QR에 회차 id를 HmacSHA256으로 서명한 코드 포함 → 번호만 바꾸면 서명이 맞지 않음\n- 규칙: 확정자만 · 시작 30분 전 ~ 종료 · 신청당 1회, 저장할 때는 회차 락\n- 검사 순서: ① 서명 → ② 로그인·개인 회원 → ③ 본인 확정 신청 → ④ 이미 출석? → ⑤ 출석 시간\n- 화면 표시와 실제 저장이 같은 검사 코드를 사용\n- 보안과 현장 사용성을 함께 고려했습니다.",
+    "beforeCode": "// 출석 기능 신규 개발로, 기존 코드는 없음\n// 검토한 단순 방식: /attendance?sessionId=12 → id만 바꾸면 다른 회차 출석 가능",
+    "afterCode": "// 1. 서명 확인 → 2. 로그인·개인 회원 → 3. 본인 확정 신청 → 4. 이미 출석? → 5. 출석 시간\nif (!qrSigner.matches(sessionId, code)) return error(\"유효하지 않은 출석 QR입니다.\");\nif (attendanceRepository.existsByRegistrationId(reg.getId())) return done(\"이미 출석 체크되었습니다.\");\nattendanceRepository.save(Attendance.create(reg, companyId));   // 회차 락 안에서 1번만",
+    "verification": "- 통합 테스트: 정상 출석, 중복 출석 · 미신청 출석 · 변조 코드 모두 차단\n- 실기기 확인(11-22): 실제 휴대폰으로 QR 인식 → 로그인 → 같은 화면 복귀 → 출석 완료, 다시 인식하면 이미 출석 체크되었습니다\n- 출석한 사람만 후기 작성 버튼이 보이도록 연결",
+    "limitations": "- 한계: 서명 코드는 attendance:{회차 id}만 서명하므로 회차마다 고정입니다 (AttendanceQrSigner.java:41). 확정자가 QR 사진을 전달받으면 현장에 없어도 출석 시간 안에 출석할 수 있습니다.\n- 개선 방향: 일정 시간마다 바뀌는 QR(시간값 포함 서명)이나 위치 확인을 검토하겠습니다. 서명 비밀키(attendance.qr-secret)는 지금 설정하지 않으면 코드의 기본값을 쓰므로, 환경 변수·비밀 관리 도구로 반드시 주입하도록 바꾸겠습니다.\n- 배운 점: 사용자가 직접 보는 입력(주소, QR)은 \"화면은 편의, 서버가 진짜 방어\"라는 원칙으로 설계해야 합니다."
+  },
+  {
+    "id": "case-011",
+    "memberId": "m4",
+    "title": "상태별 회차 목록이 항상 비어 보이는 문제 → 모델 이름과 화면용 DTO 통일",
+    "category": "Frontend",
+    "tags": [
+      "Mustache",
+      "Spring MVC",
+      "DTO",
+      "Debugging"
+    ],
+    "draft": false,
+    "featured": false,
+    "links": [],
+    "summary": "상태별 회차 목록(F02)이 데이터가 있어도 항상 비어 보였습니다. 모델 이름 불일치와 화면에 필요한 값이 없는 엔티티 전달이라는 두 원인을 찾아, 일반 목록과 같은 화면용 DTO로 통일해 해결했습니다.\n\n🔴 문제 데이터가 있는데도 상태별 회차 목록이 항상 비어 보였다 (오류 메시지 없음)\n🟡 판단 모델 이름 불일치와 엔티티 직접 전달 두 원인을 모두 찾아, 일반 목록과 같은 화면용 DTO로 통일\n🟢 결과 목록 정상 표시, 같은 계열의 Mustache 결함 5건도 원인까지 찾아 수정",
+    "background": "- 사용자가 신청 상태별로 회차 목록을 보는 화면(F02)이었습니다.\n- Mustache 템플릿은 넘겨받은 값이 없으면 오류 없이 그냥 아무것도 그리지 않습니다.",
+    "symptoms": "- 예상: 상태별로 해당 회차 목록이 표시됨\n- 실제: 데이터가 있는데도 목록이 항상 비어 보임\n- 오류 메시지도, 예외 로그도 없었습니다.",
+    "analysis": "- 오류가 없으니, 컨트롤러가 넘기는 값과 템플릿이 읽는 값을 하나씩 대조했습니다.\n- 원인 1: 컨트롤러가 넘기는 모델 이름과 템플릿이 읽는 이름이 달랐습니다 (eventSessions ↔ eventSession).\n- 원인 2: 화면에 필요한 값이 없는 엔티티를 그대로 넘기고 있었습니다. 이름을 맞춰도 일부 칸이 비게 됩니다.",
+    "alternatives": "| 방법                                   | 판단                                                      |\n| -------------------------------------- | --------------------------------------------------------- |\n| 템플릿 쪽 이름만 고치기                 | 원인 1만 해결, 엔티티 전달 문제는 남음 → ❌               |\n| 엔티티에 화면용 값 추가                 | 엔티티가 화면에 끌려다님 → ❌                             |\n| 일반 목록과 같은 화면용 DTO로 통일 | 두 원인 모두 해결, 두 화면이 같은 형식을 씀 → ✅         |",
+    "decision": "- 이미 일반 회차 목록에서 쓰던 화면용 DTO를 그대로 재사용하고 모델 이름을 맞췄습니다.\n- 유지보수성: 같은 정보를 보여 주는 두 화면이 같은 형식을 쓰면, 한쪽을 고칠 때 다른 쪽도 함께 맞춰집니다.",
+    "beforeCode": "// EventSessionController.listByStatus() — 컨트롤러는 복수형 이름으로 전달\n@GetMapping(\"/events/sessions/status/{eventId}\")\npublic String listByStatus(@PathVariable Long eventId, @RequestParam EventSessionStatus status, Model model) {\n    model.addAttribute(\"eventSessions\", eventSessionService.findAllByEventIdAndStatus(eventId, status));\n    model.addAttribute(\"status\", status);\n\n    return \"event_session/list\";   // list.mustache는 단수형 eventSession을 읽음 → 항상 비어 보임\n}\n\n// EventSessionService — 화면에 필요한 값이 없는 엔티티를 그대로 반환\n// 행사별 상태별 회차 조회\npublic List<EventSession> findAllByEventIdAndStatus(Long eventId, EventSessionStatus status) {\n    return eventSessionRepository.findAllByEventIdAndStatus(eventId, status);\n}\n\n// 출처: 해당 변경의 변경 전 코드 (변경 작업 이전 main)",
+    "afterCode": "// EventSessionController.listByStatus() — 템플릿(list.mustache)이 읽는 이름으로 맞춤\nmodel.addAttribute(\"eventSession\", eventSessionService.findAllByEventIdAndStatus(eventId, status));\n\n// EventSessionService — ★ [F02] 일반 목록(findByEventId)과 같은 화면용 DTO로 반환 (capacityLabel·신청 가능 여부 포함)\npublic List<EventSessionResponse.EventSessionDto> findAllByEventIdAndStatus(Long eventId, EventSessionStatus status) {\n    return eventSessionRepository.findAllByEventIdAndStatus(eventId, status)\n            .stream()\n            .map(session -> new EventSessionResponse.EventSessionDto(session, registrationService.getClosedReason(session)))\n            .toList();\n}\n\n// 출처: 해당 변경 (11-19, fix(eventSession): 상태별 회차 목록이 비어 보이는 문제 수정) → 변경 작업로 main에 반영 (11-20)\n// 템플릿을 고치지 않고 컨트롤러 쪽 이름을 템플릿(eventSession)에 맞췄습니다. 일반 목록 화면이 이미 eventSession 이름과 EventSessionDto를 쓰고 있었기 때문입니다.",
+    "verification": "- 상태별 목록이 정상 표시되는 것을 화면에서 확인\n- 같은 계열의 결함도 재현 → 원인 → 수정 → 재확인 순서로 닫았습니다.\n\n| 증상                                | 원인                                          | 해결                                          |\n| ----------------------------------- | --------------------------------------------- | --------------------------------------------- |\n| 기업 거절 환불이 그냥 '환불'로 보임 | 환불 내역에 거절 여부 정보가 없음             | 결제 id로 거절 여부를 쿼리 1번에 조회  |\n| 내용 없는 '환불 내역' 제목이 보임   | Mustache는 빈 문자열도 '값 있음'으로 봄   | 숨길 값은 null로 전달                       |\n| 커뮤니티 화면이 하얗게 멈춤         | 섹션 밖에서 null 출력 시 예외               | {{#값}}{{.}}{{/값}} 형태로 출력             |\n| 화면이 무한 로딩                    | JS 주석 안의 {{partial}}도 실행됨     | 주석에 템플릿 문법 사용 금지                  |\n| 빈 파일이 커밋될 뻔함               | IDE가 새 파일을 빈 상태로 staged              | commit 전 git status, 경로 지정 git add   |",
+    "limitations": "- 한계: Mustache는 이름이 틀려도 오류를 내지 않아, 같은 실수를 화면을 직접 봐야만 찾을 수 있습니다.\n- 개선 방향: 화면 데이터 이름을 상수·DTO로 통일하고, 컨트롤러 테스트에서 모델 값의 이름과 내용을 검사하겠습니다. 위 Mustache 함정은 팀 체크리스트로 공유하겠습니다.\n- 배운 점: 오류가 없는 버그는 넘기는 쪽과 받는 쪽을 나란히 놓고 대조하는 것이 가장 빠릅니다."
+  },
+  {
+    "id": "case-012",
+    "memberId": "m4",
+    "title": "기능별로는 정상이던 main의 숨은 결함 → 81항목 통합 테스트와 원인·수정안 보고",
+    "category": "Collaboration",
+    "tags": [
+      "Integration Test",
+      "QA",
+      "Git",
+      "Documentation",
+      "Collaboration"
+    ],
+    "draft": false,
+    "featured": false,
+    "links": [],
+    "summary": "기능별로는 동작하던 코드가 main에서 합쳐진 뒤 실제 흐름에서 막히는 문제가 있었습니다. 최신 main을 81항목으로 통합 테스트해 문제 18건을 재현 방법 · 원인 위치 · 수정안과 함께 보고했고, 일부가 최종 main에 반영됐습니다.\n\n🔴 문제 각자 만든 기능이 main에서 합쳐진 뒤 실제 흐름대로 동작하는지 끝까지 확인한 사람이 없었다\n🟡 판단 실제 화면 순서대로 12단계 81항목 테스트, 남의 코드는 직접 고치지 않고 원인·수정안을 담당자에게 공유\n🟢 결과 문제 18건 보고, 회차 취소 승인 404·회차 상세 빈 화면 최종 반영, 로그인 불가 문제 추가 발견",
+    "background": "- 5명이 각자 브랜치에서 만든 기능(가입 · 행사 등록 · 심사 · 포인트 · 신청 · 출석 · 취소)이 main에서 하나로 합쳐졌습니다.\n- 개발 마감 뒤에는 전체 흐름을 사용자 입장에서 처음부터 끝까지 확인하는 과정이 필요했습니다.",
+    "symptoms": "- 관리자의 회차 취소 승인이 항상 404\n- 회차 상세 화면이 빈 화면\n- 최종 main(11-23) 이후: 테스트 계정과 예전에 가입한 계정이 로그인 400, 빈 비밀번호는 500 가능\n- 그 밖에 막힘 5 · 이상함 6 · 개선 7, 총 18건",
+    "analysis": "- 실제 화면과 같은 순서로 12단계 요청을 보냈습니다: 가입 → 등록 → 심사 → 결제 → 신청 → 출석 → 취소\n- 실패하면 응답과 로그를 확인하고 원인이 되는 파일과 줄까지 찾았습니다.\n- 예: 회차 취소 승인 404 → 환불 대기 행을 만드는 코드가 어디서도 호출되지 않아, 승인 단계에서 찾을 데이터가 없었습니다.\n- 예: 로그인 불가 → 가입용 비밀번호 규칙(영문·숫자·특수문자 8–16자)이 로그인 검사에도 들어가 있었습니다. 빈 값 검사보다 규칙 검사가 먼저라 빈 비밀번호는 500이 날 수 있었습니다.\n- DB를 직접 바꿔야 할 때는 사전 승인을 받고 이유를 기록했습니다.",
+    "alternatives": "| 방법                                     | 판단                                                               |\n| ---------------------------------------- | ------------------------------------------------------------------ |\n| 찾은 문제를 main에서 바로 직접 수정       | 빠르지만 담당자의 의도·다른 기능 영향을 모른 채 바꾸게 됨 → ❌      |\n| 증상만 알리기                            | 담당자가 다시 처음부터 재현·분석해야 함 → ❌                        |\n| 재현 방법 · 원인 위치 · 수정안 · 담당 영역을 함께 보고 | 담당자가 바로 판단·수정 가능, 결정권은 담당자와 팀에 → ✅ |",
+    "decision": "- main은 직접 고치지 않았습니다. 그 코드의 담당자와 팀이 결정할 일이기 때문입니다.\n- 대신 문제마다 재현 방법 · 원인 파일과 줄 · 수정안 · 담당 영역을 적어 즉시 공유했습니다.\n- 최종 Merge 뒤에도 다시 확인하고, 반영된 수정은 재테스트 대상으로 남겼습니다.\n- 결과 문서는 팀 Wiki에 남겼습니다: 설계 문서 8종, 협업 매뉴얼(Git 문제 해결 11가지), 통합·화면 테스트 결과와 화면 캡처 34장",
+    "beforeCode": "// 코드 변경이 아닌 협업·검증 과정 개선 항목\n// 변경 전: 기능별 개별 확인만 있고, 합쳐진 main 전체 흐름 검증과 결함 보고 형식이 없음",
+    "afterCode": "// 변경 후: 문제 보고 형식 (18건 모두 같은 형식)\n[증상]      관리자 회차 취소 승인이 항상 404\n[재현]      회차 취소 요청 → 관리자 승인 클릭\n[원인]      RefundService.java:95-96 refundCompany가 PENDING 기업 환불 행을 찾는데,\n            그 행을 만드는 Refund.companyBuilder()가 본 코드 어디서도 호출되지 않음\n            (Refund.java:61-62 \"TODO 기업이 취소 요청시 이 생성자 사용!\" 주석)\n[영향]      전체 롤백 → 취소 신청이 PENDING에 갇혀 그 회차는 신규 신청도 막힘,\n            참가자 환불·보증금 반환 모두 안 됨\n[수정안]    취소 신청 저장(EventCancelService.save) 때 PENDING 행 생성,\n            또는 refundCompany에서 없으면 새로 생성\n[담당 영역] 회차 취소·환불·보증금\n[상태]      11-23 변경 작업에서 \"없으면 생성\" 방식으로 수정 반영 → 재테스트 대상",
+    "verification": "- 81항목: 통과 61 · 실패 8 · 건너뜀 12\n\n💡 건너뜀 12란?\n실패가 아니라, API 요청만으로는 판정할 수 없고 화면으로만 확인할 수 있는 항목이라 이번 테스트에서 빼고 따로 표시해 둔 것입니다.\n→ 이후 화면 확인 테스트(11-22–23, 14항목)에서 점검했습니다.\n\n- 문제 18건 보고 (막힘 5 · 이상함 6 · 개선 7)\n- 회차 취소 승인 404 → 수정됨, 회차 상세 빈 화면 → 수정됨 (최종 main에서 확인)\n- 로그인 불가 문제는 원인 위치 · 영향 · 수정안을 담당자에게 공유\n- 다국어 기능 · 번역 테이블 · 기본 데이터 변경을 설계서에 반영",
+    "limitations": "- 한계: 회귀 테스트를 수동으로 반복한 비중이 컸습니다. main이 바뀔 때마다 사람이 다시 돌려야 했습니다.\n- 개선 방향: 신청 · 취소 · 환불 · 출석 흐름을 테스트 코드로 자동화해 머지할 때마다 자동으로 돌게 하겠습니다.\n- 배운 점: 기능별로 정상이어도 합쳐진 뒤의 흐름은 따로 확인해야 합니다. 그리고 결함 보고는 \"고쳐 주세요\"가 아니라 재현 · 원인 · 수정안까지 있어야 팀이 빨리 움직입니다."
   }
 ];
